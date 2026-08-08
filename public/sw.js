@@ -1,4 +1,4 @@
-const CACHE="rumbo-v2";
+const CACHE="rumbo-v3";
 const url=(path)=>new URL(path,self.registration.scope).toString();
 const ASSETS=["./","./manifest.webmanifest","./icon.svg"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS.map(url))).then(()=>self.skipWaiting())));
