@@ -1,4 +1,5 @@
 "use client";
+// Rumbo UI: cabecera personal, tripulación por tramo y biblioteca editable.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
