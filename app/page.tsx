@@ -44,21 +44,27 @@ const key=(y:number,m:number,d:number)=>`${y}-${pad(m+1)}-${pad(d)}`;
 type ClockMode="local"|"zulu";
 const shiftZulu=(value:string|undefined,offset:number)=>{if(!value)return "—";const [h,m]=value.split(":").map(Number);return `${pad((h+offset+24)%24)}:${pad(m)}`};
 const zoneLabel=(offset:number)=>offset===0?"UTC / Zulu":`UTC ${offset>0?"+":""}${offset}`;
+const isAllDayDuty=(duty:Duty)=>{
+  if(!duty.report&&!duty.reportZ&&!duty.end&&!duty.endZ)return true;
+  if(!["leave","nda","off"].includes(duty.type))return false;
+  return duty.report==="00:00"&&duty.end==="23:59";
+};
 
 function DayDetail({duty,onClose,offset,clock}:{duty:Duty,onClose:()=>void,offset:number,clock:ClockMode}){
   const day=new Date(duty.date+"T12:00:00");
   const local=(z:string|undefined)=>shiftZulu(z,offset);
   const [openLeg,setOpenLeg]=useState<number|null>(null);
+  const allDay=isAllDayDuty(duty);
   return <div className="scrim" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><section className="detail" role="dialog" aria-modal="true" aria-label={`Detalle del ${day.getDate()} de ${months[day.getMonth()]}`}>
     <button className="close" onClick={onClose} aria-label="Cerrar detalle">×</button>
     <p className="eyebrow">{day.toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"})}</p>
-    <div className="detail-title"><span className={`big-icon ${duty.type}`}>{icon[duty.type]}</span><div><h2>{duty.type==="flight"?"Jornada de vuelo":duty.title}</h2><p>{duty.type==="flight"?(duty.legs?.length?`${duty.legs.length} tramo${duty.legs.length===1?"":"s"}${duty.total?` · ${duty.total} de vuelo`:""}`:"Datos de tramo no disponibles en este PDF"):duty.note||"Actividad programada"}</p></div></div>
-    <div className="time-head"><span>{clock==="local"?`TU HORA · ${zoneLabel(offset)}`:"HORA ZULU"}</span><span>{clock==="local"?"ZULU":"TU HORA"}</span></div>
+    <div className="detail-title"><span className={`big-icon ${duty.type}`}>{icon[duty.type]}</span><div><h2>{duty.type==="flight"?"Jornada de vuelo":duty.title}</h2><p>{allDay?"Todo el día":duty.type==="flight"?(duty.legs?.length?`${duty.legs.length} tramo${duty.legs.length===1?"":"s"}${duty.total?` · ${duty.total} de vuelo`:""}`:"Datos de tramo no disponibles en este PDF"):duty.note||"Actividad programada"}</p></div></div>
+    {!allDay&&<><div className="time-head"><span>{clock==="local"?`TU HORA · ${zoneLabel(offset)}`:"HORA ZULU"}</span><span>{clock==="local"?"ZULU":"TU HORA"}</span></div>
     <div className="timeline">
       <div className="point"><i/><div><small>PRESENTACIÓN {duty.reportPlace&&`· ${duty.reportPlace}`}</small><strong>{clock==="local"?local(duty.reportZ):duty.reportZ}</strong></div><b>{clock==="local"?`${duty.reportZ||"—"} Z`:local(duty.reportZ)}</b></div>
       {duty.legs?.map((leg,i)=><button type="button" className={`point leg ${openLeg===i?"expanded":""}`} key={`${leg.flight}-${i}`} onClick={()=>setOpenLeg(openLeg===i?null:i)}><i/><div><small>TRAMO {i+1} · {leg.flight}</small><strong>{leg.from} <em>→</em> {leg.to}</strong><p>{clock==="local"?`${local(leg.departZ)} — ${local(leg.arriveZ)}`:`${leg.departZ} — ${leg.arriveZ} Z`} · Bloque {leg.block}</p>{openLeg===i&&leg.crew?.length&&<div className="leg-crew"><span>TRIPULACIÓN DEL TRAMO</span>{leg.crew.map((member,j)=><small key={`${member.id}-${member.role}-${j}`}><b>{member.role}</b> {member.name}{member.id?` · Legajo ${member.id}`:""}</small>)}</div>}</div><b>{clock==="local"?`${leg.departZ} — ${leg.arriveZ} Z`:`${local(leg.departZ)} — ${local(leg.arriveZ)}`}</b></button>)}
       <div className="point end"><i/><div><small>FINALIZACIÓN</small><strong>{clock==="local"?local(duty.endZ):duty.endZ}</strong></div><b>{clock==="local"?`${duty.endZ||"—"} Z`:local(duty.endZ)}</b></div>
-    </div>
+    </div></>}
     {duty.note&&<div className="note"><span>OBSERVACIONES</span><p>{duty.note}</p></div>}
   </section></div>
 }
@@ -145,3 +151,4 @@ export default function Home(){
     {updateReady&&<div className="update-banner"><span>Hay una nueva versión de Rumbo.</span><button onClick={()=>location.reload()}>Actualizar ahora</button></div>}{selected&&<DayDetail duty={selected} onClose={()=>setSelected(null)} offset={offset} clock={clock}/>} {showImport&&<ImportModal onClose={()=>setShowImport(false)} onImported={imported}/>} {showSettings&&<SettingsModal clock={clock} offset={offset} onSave={saveSettings} onClose={()=>setShowSettings(false)}/>}<div className="offline-badge">✓ Funciona offline</div>
   </main>
 }
+
