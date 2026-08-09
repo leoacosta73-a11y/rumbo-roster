@@ -123,7 +123,7 @@ async function parseRosterPdfStrict(buf:ArrayBuffer){
       else if(/^(?:GROUND|TRAINING|CAPACIT)/i.test(activityCode)){type="training";title=activityCode}
       else if(/^(?:LVE|LEAVE|VAC\d*|Suspensión)/i.test(activityCode)){type="leave";title=activityCode||"Licencia"}
       const timeText=activityCode?ownText:text,local=[...timeText.matchAll(/(\d{2}:\d{2})\s*\(L\)/g)].map(x=>x[1]),zulu=[...timeText.matchAll(/(\d{2}:\d{2})\s*\(Z\)/g)].map(x=>x[1]);
-      dutiesByDate.set(a.date,{date:a.date,type,title,report:local[0],reportZ:zulu[0],end:local.at(-1),endZ:zulu.at(-1),note:ownText.match(/Vuelo a definir[^\d]*/i)?.[0]?.trim(),owner})
+      dutiesByDate.set(a.date,{date:a.date,type,title,report:local[0],reportZ:zulu[0],end:activityCode?local[1]:local.at(-1),endZ:activityCode?zulu[1]:zulu.at(-1),note:ownText.match(/Vuelo a definir[^\d]*/i)?.[0]?.trim(),owner})
     });
     const flowLines=carryLines.length?[...carryLines,...lines]:lines;carryLines=[];const flowAnchors=flowLines.map((r,i)=>{const m=r.text.match(dateRe);return m?{i,y:r.y,m,date:`${m[3]}-${pad(pdfMonths[m[2]]+1)}-${pad(Number(m[1]))}`}:null}).filter(Boolean) as {i:number,y:number,m:RegExpMatchArray,date:string}[];
     const allFlightRows=flowLines.map((r,i)=>/\b[A-Z]{2}\d{3,4}[A-Z]?\b/.test(r.text)?i:-1).filter(i=>i>=0);const crewForRow=(rowIndex:number)=>{const pos=allFlightRows.indexOf(rowIndex),lower=pos>=0&&pos<allFlightRows.length-1?allFlightRows[pos+1]:flowLines.length,right=flowLines.slice(rowIndex,lower).flatMap(r=>r.parts.filter(v=>v.x>=470).map(v=>v.text)).join(" "),members:CrewMember[]=[];for(const m of right.matchAll(/\((\d+)\)\s+(.+?)\s+\((CC|PU|LS|CAPT|PIC|COP|FO|SCCM|CCM|TCP)\)/gi)){members.push({id:m[1],name:m[2].trim(),role:m[3].toUpperCase()})}return members};
