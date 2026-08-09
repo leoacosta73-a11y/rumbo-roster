@@ -15,3 +15,25 @@
 .leg-crew{margin-top:9px;padding:8px 10px;border-radius:7px;background:#eef3f0}.leg-crew>span{display:block;font-size:7px;letter-spacing:1px;font-weight:900;color:#60736b;margin-bottom:5px}.leg-crew small{display:block!important;font-size:8px!important;letter-spacing:0!important;color:#52635c!important;margin:3px 0!important}.leg-crew small b{font-size:8px;color:#166b58;margin-right:4px}
 .duty-svg{display:block;width:1em;height:1em}.plane-svg path{fill:currentColor;stroke:none}.sim-svg,.house-svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.snow-house-svg{stroke-width:1.65}
 
+
+
+/* CrewRoster identity */
+:root{--ink:#102b25;--muted:#53665f;--paper:#f7f4ec;--line:#c8d0ca;--green:#006b57;--green-soft:#d4ece2;--red:#b63d35;--blue:#356b96;--blue-soft:#d8e8f4;--gold:#9a6f28}
+body{background:radial-gradient(circle at 8% 12%,#fffdf8 0,transparent 28%),var(--paper)}
+header{background:#fffdf8;border-bottom-color:var(--line)}
+.brand>span{width:54px;height:40px;border-radius:13px 13px 13px 4px;background:var(--ink);color:#d8b668;overflow:hidden}
+.brand-plane{display:block;width:47px;height:29px;fill:currentColor}
+.brand b{font-size:21px;letter-spacing:-.65px}
+.brand small{font-size:7px;letter-spacing:1.55px;color:var(--muted);white-space:nowrap}
+.import{background:var(--ink)}
+.next-card{border-color:var(--green);background:linear-gradient(105deg,#123f35,#082e27)}
+.flight .activity{background:var(--green-soft);color:var(--green);border-left-color:var(--green)}
+.standby .activity{background:#f4d7d3;color:var(--red)}
+.nda .activity{background:#dcecdf;color:#286d4a}
+.off .activity{background:var(--blue-soft);color:var(--blue)}
+.leave .activity{background:#e8edda;color:#55733f}
+.calendar,.agenda{background:#fffdf8;border-color:var(--line)}
+.day{background:#fffdf8}.day.muted{background:#f2efe7}.weekdays{background:#eeece4}
+.activity b{font-weight:800}.activity small{color:currentColor;opacity:.82}
+@media(max-width:760px){.brand>span{width:42px;height:34px}.brand-plane{width:38px;height:24px}.brand div{display:flex}.brand b{font-size:15px}.brand small{font-size:5.5px;letter-spacing:.8px}nav{background:#fffdf8}}
+@media(max-width:390px){.brand small{display:none}.brand b{font-size:14px}}
