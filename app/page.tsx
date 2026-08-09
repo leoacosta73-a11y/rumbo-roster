@@ -38,7 +38,7 @@ const duties: Duty[] = [
 
 const icon: Record<Duty["type"],string>={flight:"",standby:"⌂",nda:"⌂",off:"❄",sim:"",training:"▣",leave:"☀"};
 function DutyIcon({type}:{type:Duty["type"]}){
-  if(type==="flight")return <svg className="duty-svg plane-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.7 11.2 9.5 9l3.1-6.5h2l-.8 6.1 6.8 2.5c.5.2.8.6.8 1.1s-.3.9-.8 1.1l-6.8 2.1.8 6.1h-2l-3.1-6.3-6.8-2.4c-.9-.3-.9-1.3 0-1.6Z"/><path d="m8.6 10.2-2.2-4h1.8l3.4 3.1m-3 4.7-2.2 4h1.8l3.4-3"/></svg>;
+  if(type==="flight")return <svg className="duty-svg plane-svg" viewBox="0 0 512 512" aria-hidden="true"><path d="M256 0c-35.3 0-64 28.7-64 64v128L60.8 270.8C42.9 281.5 32 300.8 32 321.7V352l160-64v96l-40 32v32l104-16 104 16v-32l-40-32v-96l160 64v-30.3c0-20.9-10.9-40.2-28.8-50.9L320 192V64c0-35.3-28.7-64-64-64Z"/></svg>;
   if(type==="sim")return <svg className="duty-svg sim-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3.2" width="18" height="11.5" rx="3"/><path d="M6.2 11.2c1.5-2 3.3-3 5.8-3s4.3 1 5.8 3M9 18.8h6m-3-4.1v4.1M7 21h10"/><circle cx="8" cy="6.5" r=".7"/><circle cx="16" cy="6.5" r=".7"/></svg>;
   return <span aria-hidden="true">{icon[type]}</span>;
 }
