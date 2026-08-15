@@ -58,9 +58,9 @@ const duties: Duty[] = [
 
 const icon: Record<Duty["type"],string>={flight:"",standby:"⌂",nda:"⌂",off:"❄",sim:"",training:"▣",leave:"☀"};
 function DutyIcon({type}:{type:Duty["type"]}){
-  if(type==="flight")return <svg className="duty-svg plane-svg" viewBox="0 0 48 32" aria-hidden="true"><path d="M3 22.8 19.2 18l7.5-12.2c.7-1.1 1.9-1.8 3.2-1.8h2l-3.7 12.1 10.7-3.2c2.8-.8 5.8.4 7.2 3l.7 1.5-17.5 8.1-8.1 1.9-8.7-1.8-5.8 1.7-2.1-1.1L3 22.8Zm17.1-4.5-7.3-6.1 3.3-1 10.2 5.3-6.2 1.8Z"/></svg>;
+  if(type==="flight")return <svg className="duty-svg plane-svg" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 1.8c-1.25 0-2.15 1.17-2.15 2.75v7.12L3.4 17.78v3.32l10.45-3.35v7.12l-3.62 2.53v2.8L16 28.5l5.77 1.7v-2.8l-3.62-2.53v-7.12L28.6 21.1v-3.32l-10.45-6.11V4.55c0-1.58-.9-2.75-2.15-2.75Z"/></svg>;
   if(type==="sim")return <svg className="duty-svg sim-svg" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 5.5h22v14H5zM8 8.5h16v7.5H8zM3.5 19.5h25l-2.4 6H5.9l-2.4-6ZM11 25.5v2h10v-2"/><path d="M9 19.5v3m14-3v3M13 19.5l1.5 3m4-3-1 3"/></svg>;
-  if(type==="standby"||type==="nda"||type==="leave")return <svg className="duty-svg house-svg" viewBox="0 0 32 32" aria-hidden="true"><path d="M4.5 15.2 16 5l11.5 10.2v12.3H4.5V15.2Z"/><path d="M12.2 27.5v-8.3h7.6v8.3M22.5 6.5v4.3"/></svg>;
+  if(type==="standby"||type==="nda"||type==="leave")return <svg className="duty-svg house-svg" viewBox="0 0 32 32" aria-hidden="true"><path className="house-body" d="M3 15.2 16 3.8l5.2 4.55V5.2h4v6.65l3.8 3.35-2.35 2.65-1.65-1.46V29H7V16.39l-1.65 1.46L3 15.2Z"/><path className="house-door" d="M13 29v-8h6v8"/></svg>;
   if(type==="off")return <svg className="duty-svg house-svg snow-house-svg" viewBox="0 0 32 32" aria-hidden="true"><path d="M4.5 14.2 16 4l11.5 10.2v12.3H4.5V14.2Z"/><path d="M12.2 26.5v-8.3h7.6v8.3M22.5 5.5v4.3M16 10.5v6m-3-3h6m-5.1-2.1 4.2 4.2m0-4.2-4.2 4.2"/></svg>;
   return <span aria-hidden="true">{icon[type]}</span>;
 }

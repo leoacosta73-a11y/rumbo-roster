@@ -13,12 +13,12 @@
 
 .crew-card{margin-top:20px;padding:15px 17px;border:1px solid #d9dfdc;border-radius:10px;background:#f5f7f4}.crew-card>span{display:block;font-size:8px;letter-spacing:1.2px;font-weight:900;color:#6d7974;margin-bottom:9px}.crew-card>div{display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid #e0e4e1;padding:8px 0}.crew-card>div:first-of-type{border-top:0}.crew-card b{font-size:10px;color:#61706a}.crew-card p{margin:0;font-size:12px;font-weight:800}.crew-card small{display:block;color:#858e8a;font-size:9px;line-height:1.5;margin-top:5px}
 .leg-crew{margin-top:9px;padding:8px 10px;border-radius:7px;background:#eef3f0}.leg-crew>span{display:block;font-size:7px;letter-spacing:1px;font-weight:900;color:#60736b;margin-bottom:5px}.leg-crew small{display:block!important;font-size:8px!important;letter-spacing:0!important;color:#52635c!important;margin:3px 0!important}.leg-crew small b{font-size:8px;color:#166b58;margin-right:4px}
-.duty-svg{display:block;width:1em;height:1em}.plane-svg path{fill:currentColor;stroke:none}.sim-svg,.house-svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.snow-house-svg{stroke-width:1.65}
+.duty-svg{display:block;width:1em;height:1em}.plane-svg path{fill:currentColor;stroke:none}.sim-svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.house-svg{fill:none;stroke:none}.house-svg .house-body{fill:currentColor}.house-svg .house-door{fill:none;stroke:#fffdf8;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.snow-house-svg{fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
 
 
 
 /* CrewRoster identity */
-:root{--ink:#102b25;--muted:#53665f;--paper:#f7f4ec;--line:#c8d0ca;--green:#006b57;--green-soft:#d4ece2;--red:#b63d35;--blue:#356b96;--blue-soft:#d8e8f4;--gold:#9a6f28}
+:root{--ink:#102b25;--muted:#53665f;--paper:#f7f4ec;--line:#c8d0ca;--green:#006b57;--green-soft:#d4ece2;--flight:#1268ad;--flight-soft:#d9ecfb;--red:#b63d35;--blue:#356b96;--blue-soft:#d8e8f4;--gold:#9a6f28}
 body{background:radial-gradient(circle at 8% 12%,#fffdf8 0,transparent 28%),var(--paper)}
 header{background:#fffdf8;border-bottom-color:var(--line)}
 .brand>span{width:54px;height:40px;border-radius:13px 13px 13px 4px;background:var(--ink);color:#d8b668;overflow:hidden}
@@ -27,7 +27,8 @@ header{background:#fffdf8;border-bottom-color:var(--line)}
 .brand small{font-size:7px;letter-spacing:1.55px;color:var(--muted);white-space:nowrap}
 .import{background:var(--ink)}
 .next-card{border-color:var(--green);background:linear-gradient(105deg,#123f35,#082e27)}
-.flight .activity{background:var(--green-soft);color:var(--green);border-left-color:var(--green)}
+.flight .activity{background:var(--flight-soft);color:var(--flight);border-left-color:var(--flight)}
+.legend i.flight,.agenda-icon.flight,.big-icon.flight{background:var(--flight-soft);color:var(--flight)}
 .standby .activity{background:#f4d7d3;color:var(--red)}
 .nda .activity{background:#dcecdf;color:#286d4a}
 .off .activity{background:var(--blue-soft);color:var(--blue)}
