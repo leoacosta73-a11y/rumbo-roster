@@ -171,28 +171,40 @@ function FlightMap({routes}:{routes:MapRoute[]}){
   const [status,setStatus]=useState<"loading"|"ready"|"error">("loading");
   const signature=routes.map(r=>`${r.fromCode}-${r.toCode}`).join("|");
   useEffect(()=>{
-    let map:any,cancelled=false;
-    const loadLeaflet=()=>new Promise<any>((resolve,reject)=>{
-      const w=window as any;if(w.L)return resolve(w.L);
-      if(!document.getElementById("leaflet-css")){const link=document.createElement("link");link.id="leaflet-css";link.rel="stylesheet";link.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";link.integrity="sha256-p4NxAoJBhIINfQ3ynhHdN4sN3ZElKzK8D+QI5MZbCgc=";link.crossOrigin="";document.head.appendChild(link)}
-      const current=document.getElementById("leaflet-js") as HTMLScriptElement|null;if(current){current.addEventListener("load",()=>resolve((window as any).L),{once:true});current.addEventListener("error",reject,{once:true});return}
-      const script=document.createElement("script");script.id="leaflet-js";script.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";script.integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";script.crossOrigin="";script.onload=()=>resolve((window as any).L);script.onerror=reject;document.head.appendChild(script)
+    let map:any,observer:ResizeObserver|undefined,loadTimer:ReturnType<typeof setTimeout>|undefined,cancelled=false;
+    const loadMapLibre=()=>new Promise<any>((resolve,reject)=>{
+      const w=window as any;if(w.maplibregl)return resolve(w.maplibregl);
+      if(!document.getElementById("maplibre-css")){const link=document.createElement("link");link.id="maplibre-css";link.rel="stylesheet";link.href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css";document.head.appendChild(link)}
+      const current=document.getElementById("maplibre-js") as HTMLScriptElement|null;if(current){current.addEventListener("load",()=>resolve((window as any).maplibregl),{once:true});current.addEventListener("error",reject,{once:true});return}
+      const script=document.createElement("script");script.id="maplibre-js";script.src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js";script.onload=()=>resolve((window as any).maplibregl);script.onerror=reject;document.head.appendChild(script)
     });
     setStatus("loading");
-    loadLeaflet().then(L=>{
+    loadMapLibre().then(M=>{
       if(cancelled||!element.current)return;
-      map=L.map(element.current,{zoomControl:true,scrollWheelZoom:false,worldCopyJump:true,zoomSnap:.25}).setView([-38.4,-63.6],4);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
       const uniqueRoutes=[...new Map(routes.map(r=>[`${r.fromCode}-${r.toCode}`,r])).values()];
-      uniqueRoutes.forEach(r=>L.polyline([[r.from.lat,r.from.lon],[r.to.lat,r.to.lon]],{color:"#48bde5",weight:3.5,opacity:.86,lineCap:"round"}).addTo(map));
       const points=[...new Map(routes.flatMap(r=>[[r.fromCode,r.from] as const,[r.toCode,r.to] as const])).entries()];
-      points.forEach(([code,p])=>L.circleMarker([p.lat,p.lon],{radius:6,color:"#fff",weight:2,fillColor:"#123f52",fillOpacity:1}).addTo(map).bindTooltip(`<b>${code}</b><br>${p.name}`,{direction:"top",offset:[0,-7]}));
-      if(points.length===1)map.setView([points[0][1].lat,points[0][1].lon],6);else if(points.length>1)map.fitBounds(L.latLngBounds(points.map(([,p])=>[p.lat,p.lon])),{padding:[34,34],maxZoom:7});
-      setTimeout(()=>map?.invalidateSize(),80);setStatus("ready");
+      map=new M.Map({container:element.current,style:"https://tiles.openfreemap.org/styles/positron",center:[-63.6,-38.4],zoom:3.25,attributionControl:true,dragRotate:false,pitchWithRotate:false});
+      map.addControl(new M.NavigationControl({showCompass:false}),"top-right");
+      loadTimer=setTimeout(()=>!cancelled&&setStatus("error"),15000);
+      map.on("load",()=>{
+        if(cancelled)return;
+        if(loadTimer)clearTimeout(loadTimer);
+        map.addSource("crew-routes",{type:"geojson",data:{type:"FeatureCollection",features:uniqueRoutes.map(r=>({type:"Feature",properties:{from:r.fromCode,to:r.toCode},geometry:{type:"LineString",coordinates:[[r.from.lon,r.from.lat],[r.to.lon,r.to.lat]]}}))}});
+        map.addLayer({id:"crew-routes-glow",type:"line",source:"crew-routes",paint:{"line-color":"#06354a","line-width":7,"line-opacity":.34,"line-blur":2}});
+        map.addLayer({id:"crew-routes",type:"line",source:"crew-routes",paint:{"line-color":"#36bce8","line-width":3.5,"line-opacity":.95}});
+        map.addSource("crew-airports",{type:"geojson",data:{type:"FeatureCollection",features:points.map(([code,p])=>({type:"Feature",properties:{code,name:p.name},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))}});
+        map.addLayer({id:"crew-airports",type:"circle",source:"crew-airports",paint:{"circle-radius":6,"circle-color":"#0b3445","circle-stroke-color":"#fff","circle-stroke-width":2}});
+        map.addLayer({id:"crew-airport-labels",type:"symbol",source:"crew-airports",layout:{"text-field":["get","code"],"text-size":12,"text-offset":[0,1.35],"text-anchor":"top"},paint:{"text-color":"#092b39","text-halo-color":"#fff","text-halo-width":1.5}});
+        map.on("click","crew-airports",(e:any)=>{const feature=e.features?.[0];if(!feature)return;new M.Popup({offset:10}).setLngLat(feature.geometry.coordinates).setHTML(`<b>${feature.properties.code}</b><br>${feature.properties.name}`).addTo(map)});
+        map.on("mouseenter","crew-airports",()=>map.getCanvas().style.cursor="pointer");map.on("mouseleave","crew-airports",()=>map.getCanvas().style.cursor="");
+        if(points.length===1)map.flyTo({center:[points[0][1].lon,points[0][1].lat],zoom:6});else if(points.length>1){const bounds=new M.LngLatBounds();points.forEach(([,p])=>bounds.extend([p.lon,p.lat]));map.fitBounds(bounds,{padding:38,maxZoom:7,duration:0})}
+        map.resize();setStatus("ready");
+      });
+      observer=new ResizeObserver(()=>map?.resize());observer.observe(element.current);
     }).catch(()=>!cancelled&&setStatus("error"));
-    return()=>{cancelled=true;if(map)map.remove()};
+    return()=>{cancelled=true;if(loadTimer)clearTimeout(loadTimer);observer?.disconnect();if(map)map.remove()};
   },[signature]);
-  return <div className="real-map-wrap"><div ref={element} className="real-map" role="img" aria-label={`Mapa geográfico con ${routes.length} rutas voladas`}/>{status==="loading"&&<div className="map-message">Cargando mapa geográfico…</div>}{status==="error"&&<div className="map-message error-map">No se pudo cargar el mapa. Revisá la conexión.</div>}</div>
+  return <div className="real-map-wrap"><div ref={element} className="real-map" role="img" aria-label={`Mapa vectorial con ${routes.length} rutas voladas`}/>{status==="loading"&&<div className="map-message">Cargando mapa vectorial…</div>}{status==="error"&&<div className="map-message error-map">No se pudo cargar el mapa. Revisá la conexión.</div>}</div>
 }
 
 function StatisticsView({records,selectedIds,onToggle,onAll,fallback,onImport}:{records:RosterRecord[],selectedIds:Set<string>,onToggle:(id:string)=>void,onAll:()=>void,fallback:Duty[],onImport:()=>void}){

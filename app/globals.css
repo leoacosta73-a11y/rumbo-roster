@@ -74,3 +74,6 @@ nav button{color:#8ba8b4}nav button.active{color:#fff}nav button.active:after{ba
 .roster-list>button,.roster-item>button:first-child{background:#f4f8f9;border-color:#b7cbd2;box-shadow:0 10px 28px rgba(0,21,29,.14)}.open-pdf{color:#087fa7}.empty-rosters{background:#e8f2f4;border-color:#70a7b8}.empty-rosters>span{color:#159ac7}
 .detail,.import-card,.settings-card{background:#f0f5f6}.big-icon.flight,.agenda-icon.flight,.legend i.flight{background:#d3f0f8;color:#087da6}.real-map-wrap{background:#163b48}.map-message{background:#153b48;color:#d0e4ea}.real-map .leaflet-control-zoom a{color:#0a2936}
 @media(max-width:760px){nav{background:#06151e;border-top-color:#244552;box-shadow:0 -6px 22px rgba(0,12,18,.24)}nav button{color:#7e9ca8}nav button.active{color:#fff}.statistics-title h1,.roster-title h1{color:#f4fafb}.toolbar h2{color:#f4fafb}}
+
+/* Stable vector map */
+.real-map .maplibregl-canvas{display:block;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important}.real-map .maplibregl-ctrl-group{border-radius:9px;overflow:hidden;box-shadow:0 4px 15px rgba(3,25,34,.22)}.real-map .maplibregl-ctrl-attrib{font:8px var(--font-manrope);color:#38525d}.real-map .maplibregl-popup-content{font:11px var(--font-manrope);color:#092b39;border-radius:8px;box-shadow:0 7px 22px rgba(3,25,34,.24)}

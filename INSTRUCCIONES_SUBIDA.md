@@ -1,9 +1,10 @@
-# CrewRoster — paleta de vuelo nocturno
+# CrewRoster — corrección del mapa vectorial
 
 Esta carpeta contiene la versión actualizada de CrewRoster con:
 
 - interfaz inspirada en aviación nocturna: azul noche, azul petróleo, celeste luminoso, gris metálico y blanco;
-- mapa geográfico real e interactivo;
+- mapa vectorial real e interactivo, optimizado para iPhone;
+- corrección de bloques vacíos y mosaicos incompletos;
 - rutas y aeropuertos ubicados mediante coordenadas reales;
 - encuadre automático en Argentina, Sudamérica o el mundo según los vuelos seleccionados;
 - actualización automática de GitHub Pages después de cargar los archivos.
