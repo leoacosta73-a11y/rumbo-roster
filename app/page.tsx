@@ -165,6 +165,36 @@ const duration=(value:number)=>`${Math.floor(value/60).toLocaleString("es-AR")}:
 const distanceNm=(a:Airport,b:Airport)=>{const rad=(n:number)=>n*Math.PI/180,r=3440.065,dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon);const h=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 2*r*Math.asin(Math.sqrt(h))};
 const uniqueDuties=(items:Duty[])=>[...items.reduce((map,d)=>{const current=map.get(d.date);if(!current||(d.legs?.length||0)>(current.legs?.length||0))map.set(d.date,d);return map},new Map<string,Duty>()).values()].sort((a,b)=>a.date.localeCompare(b.date));
 
+type MapRoute={fromCode:string;toCode:string;from:Airport;to:Airport};
+function FlightMap({routes}:{routes:MapRoute[]}){
+  const element=useRef<HTMLDivElement>(null);
+  const [status,setStatus]=useState<"loading"|"ready"|"error">("loading");
+  const signature=routes.map(r=>`${r.fromCode}-${r.toCode}`).join("|");
+  useEffect(()=>{
+    let map:any,cancelled=false;
+    const loadLeaflet=()=>new Promise<any>((resolve,reject)=>{
+      const w=window as any;if(w.L)return resolve(w.L);
+      if(!document.getElementById("leaflet-css")){const link=document.createElement("link");link.id="leaflet-css";link.rel="stylesheet";link.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";link.integrity="sha256-p4NxAoJBhIINfQ3ynhHdN4sN3ZElKzK8D+QI5MZbCgc=";link.crossOrigin="";document.head.appendChild(link)}
+      const current=document.getElementById("leaflet-js") as HTMLScriptElement|null;if(current){current.addEventListener("load",()=>resolve((window as any).L),{once:true});current.addEventListener("error",reject,{once:true});return}
+      const script=document.createElement("script");script.id="leaflet-js";script.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";script.integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";script.crossOrigin="";script.onload=()=>resolve((window as any).L);script.onerror=reject;document.head.appendChild(script)
+    });
+    setStatus("loading");
+    loadLeaflet().then(L=>{
+      if(cancelled||!element.current)return;
+      map=L.map(element.current,{zoomControl:true,scrollWheelZoom:false,worldCopyJump:true,zoomSnap:.25}).setView([-38.4,-63.6],4);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+      const uniqueRoutes=[...new Map(routes.map(r=>[`${r.fromCode}-${r.toCode}`,r])).values()];
+      uniqueRoutes.forEach(r=>L.polyline([[r.from.lat,r.from.lon],[r.to.lat,r.to.lon]],{color:"#0b65a8",weight:3.5,opacity:.78,lineCap:"round"}).addTo(map));
+      const points=[...new Map(routes.flatMap(r=>[[r.fromCode,r.from] as const,[r.toCode,r.to] as const])).entries()];
+      points.forEach(([code,p])=>L.circleMarker([p.lat,p.lon],{radius:6,color:"#fff",weight:2,fillColor:"#073f68",fillOpacity:1}).addTo(map).bindTooltip(`<b>${code}</b><br>${p.name}`,{direction:"top",offset:[0,-7]}));
+      if(points.length===1)map.setView([points[0][1].lat,points[0][1].lon],6);else if(points.length>1)map.fitBounds(L.latLngBounds(points.map(([,p])=>[p.lat,p.lon])),{padding:[34,34],maxZoom:7});
+      setTimeout(()=>map?.invalidateSize(),80);setStatus("ready");
+    }).catch(()=>!cancelled&&setStatus("error"));
+    return()=>{cancelled=true;if(map)map.remove()};
+  },[signature]);
+  return <div className="real-map-wrap"><div ref={element} className="real-map" role="img" aria-label={`Mapa geográfico con ${routes.length} rutas voladas`}/>{status==="loading"&&<div className="map-message">Cargando mapa geográfico…</div>}{status==="error"&&<div className="map-message error-map">No se pudo cargar el mapa. Revisá la conexión.</div>}</div>
+}
+
 function StatisticsView({records,selectedIds,onToggle,onAll,fallback,onImport}:{records:RosterRecord[],selectedIds:Set<string>,onToggle:(id:string)=>void,onAll:()=>void,fallback:Duty[],onImport:()=>void}){
   const selected=records.filter(r=>selectedIds.has(r.id));
   const data=useMemo(()=>uniqueDuties(records.length?selected.flatMap(r=>r.items||[]):fallback),[records,selectedIds,fallback]);
@@ -180,15 +210,12 @@ function StatisticsView({records,selectedIds,onToggle,onAll,fallback,onImport}:{
   const longest=ranked[0],shortest=ranked.at(-1);
   const dates=data.map(d=>d.date).sort();
   const period=dates.length?`${new Date(dates[0]+"T12:00").toLocaleDateString("es-AR",{month:"short",year:"numeric"})} — ${new Date(dates.at(-1)!+"T12:00").toLocaleDateString("es-AR",{month:"short",year:"numeric"})}`:"Sin período seleccionado";
-  const points=airportCodes.filter(code=>airports[code]).map(code=>({code,...airports[code]}));
-  const lats=points.map(p=>p.lat),lons=points.map(p=>p.lon),latMin=Math.min(...lats,-55)-3,latMax=Math.max(...lats,-5)+3,lonMin=Math.min(...lons,-78)-4,lonMax=Math.max(...lons,-38)+4;
-  const mapX=(lon:number)=>55+(lon-lonMin)/(lonMax-lonMin)*890,mapY=(lat:number)=>35+(latMax-lat)/(latMax-latMin)*350;
-  const routeLines=[...new Map(known.map(f=>[`${f.leg.from}-${f.leg.to}`,f])).values()];
+  const mapRoutes:MapRoute[]=known.map(f=>({fromCode:f.leg.from,toCode:f.leg.to,from:f.from,to:f.to}));
   return <section className="statistics-view">
     <div className="statistics-title"><div><p className="eyebrow">BITÁCORA VISUAL</p><h1>Mis estadísticas</h1><p>{period} · {records.length?`${selected.length} de ${records.length} roster seleccionados`:"Datos de demostración"}</p></div><button className="import" onClick={onImport}>⇧ Importar roster</button></div>
     {records.length?<div className="roster-selector"><div><b>Período a analizar</b><small>Elegí uno, varios o todos tus roster.</small></div><button className={selectedIds.size===records.length?"selected":""} onClick={onAll}>Todos</button>{records.map(r=><label key={r.id} className={selectedIds.has(r.id)?"selected":""}><input type="checkbox" checked={selectedIds.has(r.id)} onChange={()=>onToggle(r.id)}/><span>{new Date(r.from+"T12:00").toLocaleDateString("es-AR",{month:"short",year:"2-digit"})}</span><small>{r.name}</small></label>)}</div>:null}
     {!data.length?<div className="statistics-empty"><span>◌</span><h2>Elegí al menos un roster</h2><p>Las estadísticas se calculan con los vuelos de los PDF seleccionados.</p></div>:<>
-      <div className="flight-map"><div className="map-head"><div><span>RUTAS VOLADAS</span><b>{routeSet.size} rutas · {airportCodes.length} aeropuertos</b></div><small>{known.length<flights.length?`${flights.length-known.length} tramo${flights.length-known.length===1?"":"s"} sin coordenadas · `:""}Mapa calculado en el dispositivo</small></div><svg viewBox="0 0 1000 420" role="img" aria-label={`Mapa con ${routeLines.length} rutas voladas`}><defs><linearGradient id="sea" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#dceee8"/><stop offset="1" stopColor="#bddbd2"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="1000" height="420" rx="20" fill="url(#sea)"/><path d="M105 0c70 45 132 61 196 102 74 48 55 93 121 123 77 35 117 57 124 111 5 36-13 62-29 84H0V0Z" fill="#e8e6d1" opacity=".78"/><path d="M1000 0H670c-23 34-43 71-17 99 27 29 85 22 107 62 21 39-9 81 24 112 35 34 113 17 142 69 13 23 12 50 7 78H1000V0Z" fill="#e5e2cc" opacity=".55"/>{[1,2,3,4].map(i=><line key={`h${i}`} x1="0" y1={i*84} x2="1000" y2={i*84} stroke="#4e8575" strokeOpacity=".13"/>)}{[1,2,3,4,5].map(i=><line key={`v${i}`} x1={i*166} y1="0" x2={i*166} y2="420" stroke="#4e8575" strokeOpacity=".13"/>)}{routeLines.map((f,i)=>{const x1=mapX(f.from.lon),y1=mapY(f.from.lat),x2=mapX(f.to.lon),y2=mapY(f.to.lat),cx=(x1+x2)/2,cy=Math.min(y1,y2)-Math.max(18,Math.abs(x2-x1)*.1);return <path key={`${f.leg.from}-${f.leg.to}-${i}`} d={`M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}`} fill="none" stroke="#0a7a65" strokeWidth="3" strokeOpacity=".62" strokeLinecap="round"/>})}{points.map(p=><g key={p.code} transform={`translate(${mapX(p.lon)} ${mapY(p.lat)})`}><circle r="8" fill="#fff" stroke="#075f50" strokeWidth="4" filter="url(#glow)"/><text x="12" y="4" fontSize="17" fontWeight="900" fill="#12372f">{p.code}</text></g>)}</svg></div>
+      <div className="flight-map"><div className="map-head"><div><span>RUTAS VOLADAS</span><b>{routeSet.size} rutas · {airportCodes.length} aeropuertos</b></div><small>{known.length<flights.length?`${flights.length-known.length} tramo${flights.length-known.length===1?"":"s"} sin coordenadas · `:""}Vista ajustada al período</small></div><FlightMap routes={mapRoutes}/></div>
       <div className="stats-grid"><article><span>VUELOS</span><strong>{flights.length.toLocaleString("es-AR")}</strong><small>{data.filter(d=>d.type==="flight").length} jornadas</small></article><article><span>DISTANCIA</span><strong>{totalDistance.toLocaleString("es-AR")}</strong><small>millas náuticas</small></article><article><span>HORAS DE VUELO</span><strong>{duration(blockMinutes)}</strong><small>tiempo bloque</small></article><article><span>HORAS DE SERVICIO</span><strong>{duration(dutyMinutes)}</strong><small>presentación a finalización</small></article></div>
       <div className="stats-detail-grid"><article><span>RUTAS</span><strong>{routeSet.size}</strong></article><article><span>AEROPUERTOS</span><strong>{airportCodes.length}</strong></article><article><span>PAÍSES</span><strong>{countries.length}</strong><small>{countries.join(" · ")||"Sin datos"}</small></article><article><span>PERÍODO</span><strong>{dates.length}</strong><small>días con actividad</small></article></div>
       <div className="flight-records"><h2>Récords del período</h2><div><article><span>VUELO MÁS LARGO</span>{longest?<><strong>{longest.leg.from} → {longest.leg.to}</strong><small>{longest.nm.toLocaleString("es-AR")} NM · {longest.leg.flight} · {new Date(longest.date+"T12:00").toLocaleDateString("es-AR")}</small></>:<strong>Sin datos</strong>}</article><article><span>VUELO MÁS CORTO</span>{shortest?<><strong>{shortest.leg.from} → {shortest.leg.to}</strong><small>{shortest.nm.toLocaleString("es-AR")} NM · {shortest.leg.flight} · {new Date(shortest.date+"T12:00").toLocaleDateString("es-AR")}</small></>:<strong>Sin datos</strong>}</article></div></div>
