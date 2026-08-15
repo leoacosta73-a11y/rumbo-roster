@@ -184,9 +184,9 @@ function FlightMap({routes}:{routes:MapRoute[]}){
       map=L.map(element.current,{zoomControl:true,scrollWheelZoom:false,worldCopyJump:true,zoomSnap:.25}).setView([-38.4,-63.6],4);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
       const uniqueRoutes=[...new Map(routes.map(r=>[`${r.fromCode}-${r.toCode}`,r])).values()];
-      uniqueRoutes.forEach(r=>L.polyline([[r.from.lat,r.from.lon],[r.to.lat,r.to.lon]],{color:"#0b65a8",weight:3.5,opacity:.78,lineCap:"round"}).addTo(map));
+      uniqueRoutes.forEach(r=>L.polyline([[r.from.lat,r.from.lon],[r.to.lat,r.to.lon]],{color:"#48bde5",weight:3.5,opacity:.86,lineCap:"round"}).addTo(map));
       const points=[...new Map(routes.flatMap(r=>[[r.fromCode,r.from] as const,[r.toCode,r.to] as const])).entries()];
-      points.forEach(([code,p])=>L.circleMarker([p.lat,p.lon],{radius:6,color:"#fff",weight:2,fillColor:"#073f68",fillOpacity:1}).addTo(map).bindTooltip(`<b>${code}</b><br>${p.name}`,{direction:"top",offset:[0,-7]}));
+      points.forEach(([code,p])=>L.circleMarker([p.lat,p.lon],{radius:6,color:"#fff",weight:2,fillColor:"#123f52",fillOpacity:1}).addTo(map).bindTooltip(`<b>${code}</b><br>${p.name}`,{direction:"top",offset:[0,-7]}));
       if(points.length===1)map.setView([points[0][1].lat,points[0][1].lon],6);else if(points.length>1)map.fitBounds(L.latLngBounds(points.map(([,p])=>[p.lat,p.lon])),{padding:[34,34],maxZoom:7});
       setTimeout(()=>map?.invalidateSize(),80);setStatus("ready");
     }).catch(()=>!cancelled&&setStatus("error"));

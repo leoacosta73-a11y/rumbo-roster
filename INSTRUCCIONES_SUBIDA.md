@@ -1,8 +1,8 @@
-# CrewRoster — actualización de diseño y mapa
+# CrewRoster — paleta de vuelo nocturno
 
 Esta carpeta contiene la versión actualizada de CrewRoster con:
 
-- interfaz profesional en azul cabina, blanco y grises técnicos;
+- interfaz inspirada en aviación nocturna: azul noche, azul petróleo, celeste luminoso, gris metálico y blanco;
 - mapa geográfico real e interactivo;
 - rutas y aeropuertos ubicados mediante coordenadas reales;
 - encuadre automático en Argentina, Sudamérica o el mundo según los vuelos seleccionados;
