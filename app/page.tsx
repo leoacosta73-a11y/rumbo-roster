@@ -181,7 +181,10 @@ function FlightMap({routes}:{routes:MapRoute[]}){
     setStatus("loading");
     loadMapLibre().then(M=>{
       if(cancelled||!element.current)return;
-      const uniqueRoutes=[...new Map(routes.map(r=>[`${r.fromCode}-${r.toCode}`,r])).values()];
+      const corridors=new Map<string,{fromCode:string;toCode:string;from:Airport;to:Airport;count:number}>();
+      routes.forEach(r=>{const [a,b]=[r.fromCode,r.toCode].sort(),key=`${a}-${b}`,current=corridors.get(key);if(current){current.count+=1}else{corridors.set(key,r.fromCode===a?{...r,count:1}:{fromCode:r.toCode,toCode:r.fromCode,from:r.to,to:r.from,count:1})}});
+      const curvedRoutes=[...corridors.values()].map(r=>{const dx=r.to.lon-r.from.lon,dy=r.to.lat-r.from.lat,length=Math.max(Math.hypot(dx,dy),.001),bend=Math.min(3.6,Math.max(.45,length*.11)),nx=-dy/length,ny=dx/length,coordinates=Array.from({length:33},(_,i)=>{const t=i/32,curve=4*t*(1-t)*bend;return[r.from.lon+dx*t+nx*curve,r.from.lat+dy*t+ny*curve]});return{...r,nm:Math.round(distanceNm(r.from,r.to)),coordinates}});
+      const maxFrequency=Math.max(2,...curvedRoutes.map(r=>r.count));
       const points=[...new Map(routes.flatMap(r=>[[r.fromCode,r.from] as const,[r.toCode,r.to] as const])).entries()];
       map=new M.Map({container:element.current,style:"https://tiles.openfreemap.org/styles/positron",center:[-63.6,-38.4],zoom:3.25,attributionControl:true,dragRotate:false,pitchWithRotate:false});
       map.addControl(new M.NavigationControl({showCompass:false}),"top-right");
@@ -189,22 +192,23 @@ function FlightMap({routes}:{routes:MapRoute[]}){
       map.on("load",()=>{
         if(cancelled)return;
         if(loadTimer)clearTimeout(loadTimer);
-        map.addSource("crew-routes",{type:"geojson",data:{type:"FeatureCollection",features:uniqueRoutes.map(r=>({type:"Feature",properties:{from:r.fromCode,to:r.toCode},geometry:{type:"LineString",coordinates:[[r.from.lon,r.from.lat],[r.to.lon,r.to.lat]]}}))}});
-        map.addLayer({id:"crew-routes-glow",type:"line",source:"crew-routes",paint:{"line-color":"#06354a","line-width":7,"line-opacity":.34,"line-blur":2}});
-        map.addLayer({id:"crew-routes",type:"line",source:"crew-routes",paint:{"line-color":"#36bce8","line-width":3.5,"line-opacity":.95}});
+        map.addSource("crew-routes",{type:"geojson",data:{type:"FeatureCollection",features:curvedRoutes.map(r=>({type:"Feature",properties:{from:r.fromCode,to:r.toCode,count:r.count,nm:r.nm},geometry:{type:"LineString",coordinates:r.coordinates}}))}});
+        map.addLayer({id:"crew-routes-glow",type:"line",source:"crew-routes",paint:{"line-color":"#0a4a63","line-width":["interpolate",["linear"],["get","count"],1,3,maxFrequency,5.5],"line-opacity":.16,"line-blur":1.5}});
+        map.addLayer({id:"crew-routes",type:"line",source:"crew-routes",paint:{"line-color":"#21a8d5","line-width":["interpolate",["linear"],["get","count"],1,1.4,maxFrequency,3.1],"line-opacity":["interpolate",["linear"],["get","count"],1,.62,maxFrequency,.92]}});
         map.addSource("crew-airports",{type:"geojson",data:{type:"FeatureCollection",features:points.map(([code,p])=>({type:"Feature",properties:{code,name:p.name},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))}});
-        map.addLayer({id:"crew-airports",type:"circle",source:"crew-airports",paint:{"circle-radius":6,"circle-color":"#0b3445","circle-stroke-color":"#fff","circle-stroke-width":2}});
-        map.addLayer({id:"crew-airport-labels",type:"symbol",source:"crew-airports",layout:{"text-field":["get","code"],"text-size":12,"text-offset":[0,1.35],"text-anchor":"top"},paint:{"text-color":"#092b39","text-halo-color":"#fff","text-halo-width":1.5}});
+        map.addLayer({id:"crew-airports",type:"circle",source:"crew-airports",paint:{"circle-radius":5,"circle-color":"#083447","circle-stroke-color":"#fff","circle-stroke-width":2}});
+        map.addLayer({id:"crew-airport-labels",type:"symbol",source:"crew-airports",layout:{"text-field":["get","code"],"text-size":11,"text-offset":[0,1.25],"text-anchor":"top","text-allow-overlap":true},paint:{"text-color":"#082c3b","text-halo-color":"#f7fbfc","text-halo-width":1.7}});
         map.on("click","crew-airports",(e:any)=>{const feature=e.features?.[0];if(!feature)return;new M.Popup({offset:10}).setLngLat(feature.geometry.coordinates).setHTML(`<b>${feature.properties.code}</b><br>${feature.properties.name}`).addTo(map)});
-        map.on("mouseenter","crew-airports",()=>map.getCanvas().style.cursor="pointer");map.on("mouseleave","crew-airports",()=>map.getCanvas().style.cursor="");
-        if(points.length===1)map.flyTo({center:[points[0][1].lon,points[0][1].lat],zoom:6});else if(points.length>1){const bounds=new M.LngLatBounds();points.forEach(([,p])=>bounds.extend([p.lon,p.lat]));map.fitBounds(bounds,{padding:38,maxZoom:7,duration:0})}
+        map.on("click","crew-routes",(e:any)=>{const feature=e.features?.[0];if(!feature)return;new M.Popup({offset:8}).setLngLat(e.lngLat).setHTML(`<b>${feature.properties.from} → ${feature.properties.to}</b><br>${feature.properties.count} vuelo${Number(feature.properties.count)===1?"":"s"} · ${Number(feature.properties.nm).toLocaleString("es-AR")} NM`).addTo(map)});
+        ["crew-airports","crew-routes"].forEach(layer=>{map.on("mouseenter",layer,()=>map.getCanvas().style.cursor="pointer");map.on("mouseleave",layer,()=>map.getCanvas().style.cursor="")});
+        const onlyArgentina=points.length>0&&points.every(([,p])=>p.country==="Argentina");if(points.length===1)map.flyTo({center:[points[0][1].lon,points[0][1].lat],zoom:6});else if(onlyArgentina)map.fitBounds([[-73.8,-55.2],[-53.5,-21.5]],{padding:18,maxZoom:5,duration:0});else if(points.length>1){const bounds=new M.LngLatBounds();points.forEach(([,p])=>bounds.extend([p.lon,p.lat]));map.fitBounds(bounds,{padding:34,maxZoom:6.5,duration:0})}
         map.resize();setStatus("ready");
       });
       observer=new ResizeObserver(()=>map?.resize());observer.observe(element.current);
     }).catch(()=>!cancelled&&setStatus("error"));
     return()=>{cancelled=true;if(loadTimer)clearTimeout(loadTimer);observer?.disconnect();if(map)map.remove()};
   },[signature]);
-  return <div className="real-map-wrap"><div ref={element} className="real-map" role="img" aria-label={`Mapa vectorial con ${routes.length} rutas voladas`}/>{status==="loading"&&<div className="map-message">Cargando mapa vectorial…</div>}{status==="error"&&<div className="map-message error-map">No se pudo cargar el mapa. Revisá la conexión.</div>}</div>
+  return <div className="real-map-wrap"><div ref={element} className="real-map" role="img" aria-label={`Mapa vectorial con ${routes.length} rutas voladas`}/>{status==="ready"&&<div className="map-legend"><span>● Aeropuertos</span><span>Más intensidad · más vuelos</span></div>}{status==="loading"&&<div className="map-message">Cargando mapa vectorial…</div>}{status==="error"&&<div className="map-message error-map">No se pudo cargar el mapa. Revisá la conexión.</div>}</div>
 }
 
 function StatisticsView({records,selectedIds,onToggle,onAll,fallback,onImport}:{records:RosterRecord[],selectedIds:Set<string>,onToggle:(id:string)=>void,onAll:()=>void,fallback:Duty[],onImport:()=>void}){

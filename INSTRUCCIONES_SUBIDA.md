@@ -1,10 +1,14 @@
-# CrewRoster — corrección del mapa vectorial
+# CrewRoster — mapa de rutas amigable
 
 Esta carpeta contiene la versión actualizada de CrewRoster con:
 
 - interfaz inspirada en aviación nocturna: azul noche, azul petróleo, celeste luminoso, gris metálico y blanco;
 - mapa vectorial real e interactivo, optimizado para iPhone;
 - corrección de bloques vacíos y mosaicos incompletos;
+- rutas curvas, finas y agrupadas por corredor;
+- aeropuertos identificados por código;
+- detalle de frecuencia y distancia al tocar cada ruta;
+- encuadre completo de Argentina para vuelos nacionales;
 - rutas y aeropuertos ubicados mediante coordenadas reales;
 - encuadre automático en Argentina, Sudamérica o el mundo según los vuelos seleccionados;
 - actualización automática de GitHub Pages después de cargar los archivos.
