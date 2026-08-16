@@ -1,4 +1,4 @@
-# CrewRoster — mapa de rutas amigable
+# CrewRoster — mapa en pantalla completa
 
 Esta carpeta contiene la versión actualizada de CrewRoster con:
 
@@ -9,6 +9,8 @@ Esta carpeta contiene la versión actualizada de CrewRoster con:
 - aeropuertos identificados por código;
 - detalle de frecuencia y distancia al tocar cada ruta;
 - encuadre completo de Argentina para vuelos nacionales;
+- botón para ampliar el mapa a toda la pantalla;
+- cierre visible y soporte para las áreas seguras del iPhone;
 - rutas y aeropuertos ubicados mediante coordenadas reales;
 - encuadre automático en Argentina, Sudamérica o el mundo según los vuelos seleccionados;
 - actualización automática de GitHub Pages después de cargar los archivos.

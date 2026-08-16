@@ -169,7 +169,9 @@ type MapRoute={fromCode:string;toCode:string;from:Airport;to:Airport};
 function FlightMap({routes}:{routes:MapRoute[]}){
   const element=useRef<HTMLDivElement>(null);
   const [status,setStatus]=useState<"loading"|"ready"|"error">("loading");
+  const [expanded,setExpanded]=useState(false);
   const signature=routes.map(r=>`${r.fromCode}-${r.toCode}`).join("|");
+  useEffect(()=>{if(!expanded)return;const previous=document.body.style.overflow;document.body.style.overflow="hidden";return()=>{document.body.style.overflow=previous}},[expanded]);
   useEffect(()=>{
     let map:any,observer:ResizeObserver|undefined,loadTimer:ReturnType<typeof setTimeout>|undefined,cancelled=false;
     const loadMapLibre=()=>new Promise<any>((resolve,reject)=>{
@@ -208,7 +210,7 @@ function FlightMap({routes}:{routes:MapRoute[]}){
     }).catch(()=>!cancelled&&setStatus("error"));
     return()=>{cancelled=true;if(loadTimer)clearTimeout(loadTimer);observer?.disconnect();if(map)map.remove()};
   },[signature]);
-  return <div className="real-map-wrap"><div ref={element} className="real-map" role="img" aria-label={`Mapa vectorial con ${routes.length} rutas voladas`}/>{status==="ready"&&<div className="map-legend"><span>● Aeropuertos</span><span>Más intensidad · más vuelos</span></div>}{status==="loading"&&<div className="map-message">Cargando mapa vectorial…</div>}{status==="error"&&<div className="map-message error-map">No se pudo cargar el mapa. Revisá la conexión.</div>}</div>
+  return <div className={`real-map-wrap ${expanded?"map-expanded":""}`}><div ref={element} className="real-map" role="img" aria-label={`Mapa vectorial con ${routes.length} rutas voladas`}/><button className="map-expand" onClick={()=>setExpanded(value=>!value)} aria-pressed={expanded} aria-label={expanded?"Cerrar mapa en pantalla completa":"Ver mapa en pantalla completa"}><span aria-hidden="true">{expanded?"×":"⛶"}</span>{expanded?"Cerrar":"Ampliar"}</button>{status==="ready"&&<div className="map-legend"><span>● Aeropuertos</span><span>Más intensidad · más vuelos</span></div>}{status==="loading"&&<div className="map-message">Cargando mapa vectorial…</div>}{status==="error"&&<div className="map-message error-map">No se pudo cargar el mapa. Revisá la conexión.</div>}</div>
 }
 
 function StatisticsView({records,selectedIds,onToggle,onAll,fallback,onImport}:{records:RosterRecord[],selectedIds:Set<string>,onToggle:(id:string)=>void,onAll:()=>void,fallback:Duty[],onImport:()=>void}){
