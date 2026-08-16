@@ -1,4 +1,4 @@
-const VERSION="crew-roster-offline-v1-20260816-simfix";
+const VERSION="crew-roster-offline-v1-20260816-sim2-off";
 const SHELL=`${VERSION}-shell`;
 const RUNTIME=`${VERSION}-runtime`;
 const scoped=path=>new URL(path,self.registration.scope).toString();
