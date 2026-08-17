@@ -1,4 +1,4 @@
-const VERSION="crew-roster-offline-v1-20260817-malvinas-destinations";
+const VERSION="crew-roster-offline-v1-20260817-duty-icons-map-labels";
 const SHELL=`${VERSION}-shell`;
 const RUNTIME=`${VERSION}-runtime`;
 const scoped=path=>new URL(path,self.registration.scope).toString();
