@@ -1,4 +1,4 @@
-const VERSION="crew-roster-offline-v1-20260817-quality-pdf-calendar";
+const VERSION="crew-roster-offline-v1-20260817-map-summary-share";
 const SHELL=`${VERSION}-shell`;
 const RUNTIME=`${VERSION}-runtime`;
 const scoped=path=>new URL(path,self.registration.scope).toString();
