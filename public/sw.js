@@ -1,4 +1,4 @@
-const VERSION="crew-roster-offline-v1-20260817-ferry-leave-fast-pdf";
+const VERSION="crew-roster-offline-v1-20260817-new-brand";
 const SHELL=`${VERSION}-shell`;
 const RUNTIME=`${VERSION}-runtime`;
 const scoped=path=>new URL(path,self.registration.scope).toString();
@@ -10,7 +10,7 @@ async function cacheAppShell(){
   if(!response.ok)throw new Error("No se pudo preparar CrewRoster offline");
   await cache.put(home,response.clone());
   const html=await response.text();
-  const assets=new Set([scoped("./manifest.webmanifest"),scoped("./icon.svg")]);
+  const assets=new Set([scoped("./manifest.webmanifest"),scoped("./icon-192.png"),scoped("./icon-512.png"),scoped("./apple-touch-icon.png"),scoped("./crewroster-logo.jpeg")]);
   for(const match of html.matchAll(/(?:src|href)=["']([^"'#]+)["']/g)){
     const asset=new URL(match[1],home);
     if(asset.origin===self.location.origin)assets.add(asset.toString());

@@ -117,3 +117,10 @@ nav button{color:#8ba8b4}nav button.active{color:#fff}nav button.active:after{ba
 
 /* Operational colors: home, standby, medical and training */
 .nda .activity,.off .activity,.leave .activity{background:#dcefe5;color:#236b50;border-left:3px solid #3b936d}.standby .activity{background:#f4d7d3;color:#a84743;border-left:3px solid #c75b55}.meeting .activity,.other .activity{background:#e8edef;color:#53656c;border-left:3px solid #87979d}.agenda-icon.nda,.agenda-icon.off,.agenda-icon.leave,.big-icon.nda,.big-icon.off,.big-icon.leave,.legend i.nda,.legend i.off{background:#dcefe5;color:#236b50}.agenda-icon.standby,.big-icon.standby,.legend i.standby{background:#f4d7d3;color:#a84743}.agenda-icon.meeting,.agenda-icon.other,.big-icon.meeting,.big-icon.other{background:#e8edef;color:#53656c}
+
+/* Selected CrewRoster brand */
+.brand>span{width:43px;height:43px;padding:0;border-radius:12px;background:#061a35;overflow:hidden}
+.brand-logo{display:block;width:100%;height:100%;object-fit:cover}
+.import-mark{width:64px;height:64px;padding:0;background:#061a35;overflow:hidden;border-radius:16px}
+.import-logo{display:block;width:100%;height:100%;object-fit:cover}
+@media(max-width:760px){.brand>span{width:36px;height:36px}}
