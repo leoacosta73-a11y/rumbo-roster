@@ -1,4 +1,4 @@
-const VERSION="crew-roster-offline-v1-20260817-new-brand";
+const VERSION="crew-roster-offline-v1-20260817-profile-brand-bottom";
 const SHELL=`${VERSION}-shell`;
 const RUNTIME=`${VERSION}-runtime`;
 const scoped=path=>new URL(path,self.registration.scope).toString();
